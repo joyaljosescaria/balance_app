@@ -1,0 +1,24 @@
+<form action="/add_customer/">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Name:</label>
+                <input type="text" name="name" id="name" class="form-control shadow-none">
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Phone:</label>
+                <input type="text" name="phone" id="phone" class="form-control shadow-none">
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Email:</label>
+                <input type="email" name="email" id="email" class="form-control shadow-none">
+            </div>
+        </div>
+    </div>
+    <input type="submit" value="Add Customer" id="add-cust" class="btn btn-primary">
+</form>

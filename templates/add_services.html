@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<title>Add Services</title>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<style>
+    #checkbox {
+        display: flex;
+        align-items: center;
+        margin: 1rem 0;
+    }
+
+    .cust-input {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #customer {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .btn-add {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+</style>
+{% endblock head %}
+
+
+
+{% block body_block %}
+<form action="" method="POST">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Service Name:</label>
+                {{form.service_name}}
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Customer:</label>
+                <div class="cust-input">
+                    <input type="text" name="customer" id="customer" class="form-control shadow-none">
+                    <span class="input-group-btn">
+                        <a href="#" data-toggle="modal"
+                            data-target="#CustomerAddModal" style="color: white;"><button
+                                class="btn btn-primary btn-add" type="button">+</button></a>
+                    </span>
+                </div>
+                {{form.customer_id}}
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Service Charge:</label>
+                {{form.service_charge}}
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Profit:</label>
+                {{form.profit}}
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12" id="checkbox">
+            <!-- <div class="form-group"> -->
+            <div class="form-check">
+                {{form.isPaid}}
+                <label class="form-check-label" for="isPaid">Paid</label>
+            </div>
+            <!-- </div> -->
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Paid Amount:</label>
+                {{form.paid_amt}}
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="form-group">
+                <label for="servicename">Balance Pay Date:</label>
+                {{form.bal_paid_date}}
+            </div>
+        </div>
+    </div>
+    <input type="submit" value="Add Service" class="btn btn-primary" />
+</form>
+
+<div class="modal fade" id="CustomerAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add Customer</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                {% include 'add_customer.html' %}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal" id="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body_block %}
+
+
+{% block javascript %}
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script>
+    $(function () {
+        var projects = [
+            {%for customer in customers %}
+            {
+                value: "{{customer.id}}",
+                label: "{{customer.name}}",
+            },
+            {% endfor %}
+        ];
+
+        $("#customer").autocomplete({
+                minLength: 0,
+                source: projects,
+                focus: function (event, ui) {
+                    $("#customer").val(ui.item.label);
+                    return false;
+                },
+                select: function (event, ui) {
+                    $("#customer").val(ui.item.label);
+                    $("#id_customer_id").val(ui.item.value);
+                    return false;
+                }
+            })
+            .autocomplete("instance")._renderItem = function (ul, item) {
+                return $("<li>")
+                    .append("<div>" + item.label + "<br>" + item.value + "</div>")
+                    .appendTo(ul);
+            };
+    });
+</script>
+<script>
+    $('#id_bal_paid_date').datepicker({
+        autoclose: true,
+        todayHighlight: true
+    });
+</script>
+<script>
+    $("#add-cust").click(function () {
+      var name = $('#CustomerAddModal #name').val().trim();
+      var phone = $('#CustomerAddModal #phone').val().trim();
+      var email = $('#CustomerAddModal #email').val().trim();
+
+
+      $.ajax({
+        url: '/ajax/add_customer/',
+        data: {
+          'name': name,
+          'phone':phone,
+          'email':email
+        },
+        dataType: 'json',
+        success: function (data) {
+          if (data.successful) {
+            document.getElementsByClassName('modal-body')[0].innerHTML = "<h1>Added Successfully</h1>";
+            document.getElementById('customer').value = data.name;
+            document.getElementById('id_customer_id').value = data.id;
+            document.getElementById('cancel-btn').click();
+          }
+        }
+      });
+        event.preventDefault();
+    });
+</script>
+{% endblock javascript %}
