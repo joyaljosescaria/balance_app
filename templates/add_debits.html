@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block head %}
+<title>Add Debits</title>
+{% endblock head %}
+{% block body_block %}
+<form action="" method="POST">
+   {% csrf_token %}
+   {{form.errors}}
+   <div class="row">
+      <div class="col-md-6 col-sm-12">
+         <div class="form-group">
+            <label for="debituse">Debit Use:</label>
+            {{form.debit_use}}
+         </div>
+      </div>
+      <div class="col-md-6 col-sm-12">
+         <div class="form-group">
+            <label for="debitamt">Debit amount:</label>
+            {{form.debit_amt}}
+         </div>
+      </div>
+   </div>
+   <input type="submit" value="Add Debit" class="btn btn-primary" id="add_debit" />
+</form>
+<div class="card shadow mb-4 mt-4">
+<div class="card-header py-3">
+   <div class="table-print" style="display: flex; justify-content: space-between; align-items: center;">
+      <h6 class="m-0 font-weight-bold text-primary">Daily Services</h6>
+      <button class="btn btn-primary">
+         <h6 class="m-0 font-weight-bold ">Print Report</h6>
+      </button>
+   </div>
+</div>
+<div class="card-body  border-bottom-primary">
+   <div class="table-responsive ">
+      <table class="table table-bordered" data-order='[[ 0, "des" ]]' id="dataTable" width="100%" cellspacing="0"
+         align="center">
+         <thead>
+            <tr>
+               <th>Debit Use</th>
+               <th>Debit Amount</th>
+               <th>Date</th>
+               <th>Edit</th>
+            </tr>
+         </thead>
+         <tbody>
+            {% for debit in debits %}
+            <tr>
+               <td>{{debit.debit_use}}</td>
+               <td>{{debit.debit_amt}}</td>
+               <td>{{debit.debited_date}}</td>
+               <td>
+                  <a href="/update_services/{{service.id}}/update/"><i class="fa fa-pencil-alt"></i></a>
+               </td>
+            </tr>
+            {% endfor %}
+         </tbody>
+      </table>
+   </div>
+</div>
+{% endblock body_block %}
+{% block javascript %}
+<script>
+   $(document).ready(function () {
+       $('#dataTable').DataTable({
+           "ordering": false
+       });
+   });
+</script>
+{% endblock javascript %}

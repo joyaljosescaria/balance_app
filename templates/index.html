@@ -6,6 +6,10 @@
         margin-left: 0px;
         list-style: none;
     }
+
+    td {
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 
@@ -19,7 +23,13 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Earnings (Today)</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ {{total_amt_today.profit__sum}}</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ 
+                            {% if total_amt_today.profit__sum == None %}
+                                0
+                            {% else %}
+                                {{total_amt_today.profit__sum}}
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-calendar fa-2x text-gray-300"></i>
@@ -74,7 +84,13 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total (Pending) </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ {{total_bal}}</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ 
+                        {% if total_bal == None %}
+                            0
+                        {% else %}
+                            {{total_bal}}
+                        {% endif %}
+                            </div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -91,13 +107,14 @@
         <div class="table-print" style="display: flex; justify-content: space-between; align-items: center;">
             <h6 class="m-0 font-weight-bold text-primary">Daily Services</h6>
             <button class="btn btn-primary">
-                <h6 class="m-0 font-weight-bold ">Print Report</h6>
+                <h6 class="m-0 font-weight-bold "><a href="/daypdf" style="color:white">Print Report</a></h6>
             </button>
         </div>
     </div>
     <div class="card-body  border-bottom-primary">
         <div class="table-responsive ">
-            <table class="table table-bordered" data-order='[[ 0, "des" ]]' id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-bordered" data-order='[[ 0, "des" ]]' id="dataTable" width="100%" cellspacing="0"
+                align="center">
                 <thead>
                     <tr>
                         <th>Service Name</th>
@@ -108,6 +125,7 @@
                         <th>Paid Amount</th>
                         <th>Service Date</th>
                         <th>Balance Paid Date</th>
+                        <th>Edit</th>
                     </tr>
                 </thead>
 
@@ -118,9 +136,9 @@
                         <td>{{service.customer_id.name}}</td>
                         <td>{{service.service_charge}}</td>
                         {% if service.isPaid == True %}
-                            <td>Paid</td>
+                        <td>Paid</td>
                         {% else %}
-                            <td>Not Paid</td>
+                        <td>Not Paid</td>
                         {% endif %}
                         <td>{{service.profit}}</td>
                         <td>{{service.paid_amt}}</td>
@@ -130,7 +148,13 @@
                         {% else %}
                         <td>{{service.bal_paid_date}}</td>
                         {% endif %}
-
+                        <td>  
+                            {% if service.isPaid %}
+                                -
+                            {% else %}
+                                <a href="/update_services/{{service.id}}/update/"><i class="fa fa-pencil-alt"></i> </a>    
+                            {% endif %}  
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -16,7 +16,7 @@ class Services(models.Model):
     profit = models.FloatField()
     isPaid = models.BooleanField()
     paid_amt = models.FloatField()
-    service_date = models.DateField(auto_now=True)
+    service_date = models.DateField()
     bal_paid_date = models.DateField(blank=True, null=True)
 
     def __str__(self):

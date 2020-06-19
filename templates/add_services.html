@@ -9,6 +9,7 @@
         display: flex;
         align-items: center;
         margin: 1rem 0;
+        padding-top: 1rem;
     }
 
     .cust-input {
@@ -24,6 +25,69 @@
     .btn-add {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+    }
+
+    input[type="checkbox"].ios8-switch {
+        position: absolute;
+        margin: 8px 0 0 16px;
+    }
+
+    input[type="checkbox"].ios8-switch+label {
+        position: relative;
+        padding: 5px 0 0 50px;
+        line-height: 1.0em;
+    }
+
+    input[type="checkbox"].ios8-switch+label:before {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0;
+        top: 0;
+        width: 40px;
+        /* x*5 */
+        height: 24px;
+        /* x*3 */
+        border-radius: 16px;
+        /* x*2 */
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        -webkit-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+
+    input[type="checkbox"].ios8-switch+label:after {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0px;
+        top: 0px;
+        width: 24px;
+        /* x*3 */
+        height: 24px;
+        /* x*3 */
+        border-radius: 16px;
+        /* x*2 */
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        -webkit-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+
+    input[type="checkbox"].ios8-switch+label:hover:after {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="checkbox"].ios8-switch:checked+label:after {
+        margin-left: 16px;
+    }
+
+    input[type="checkbox"].ios8-switch:checked+label:before {
+        background: #55D069;
+    }
+    .bld
+    {
+        font-weight: bold;
     }
 </style>
 {% endblock head %}
@@ -46,8 +110,7 @@
                 <div class="cust-input">
                     <input type="text" name="customer" id="customer" class="form-control shadow-none">
                     <span class="input-group-btn">
-                        <a href="#" data-toggle="modal"
-                            data-target="#CustomerAddModal" style="color: white;"><button
+                        <a href="#" data-toggle="modal" data-target="#CustomerAddModal" style="color: white;"><button
                                 class="btn btn-primary btn-add" type="button">+</button></a>
                     </span>
                 </div>
@@ -60,34 +123,40 @@
                 {{form.service_charge}}
             </div>
         </div>
+
         <div class="col-md-6 col-sm-12">
             <div class="form-group">
                 <label for="servicename">Profit:</label>
                 {{form.profit}}
             </div>
         </div>
+
         <div class="col-md-6 col-sm-12" id="checkbox">
-            <!-- <div class="form-group"> -->
-            <div class="form-check">
+            <div class="form-group">
                 {{form.isPaid}}
-                <label class="form-check-label" for="isPaid">Paid</label>
+                <!-- <label for="servicename">Paid</label> -->
+                <label for='checkbox-1'>Paid</label>
             </div>
-            <!-- </div> -->
         </div>
+
         <div class="col-md-6 col-sm-12">
             <div class="form-group">
                 <label for="servicename">Paid Amount:</label>
                 {{form.paid_amt}}
             </div>
         </div>
-        <div class="col-12">
+            {{form.service_date}}
+        <!-- <div class="col-12">
             <div class="form-group">
                 <label for="servicename">Balance Pay Date:</label>
                 {{form.bal_paid_date}}
             </div>
-        </div>
+        </div> -->
     </div>
-    <input type="submit" value="Add Service" class="btn btn-primary" />
+    <!-- <input  value="Add Service" class="btn btn-primary" /> -->
+    <a href="#" data-toggle="modal" data-target="#promptModal" style="color: white;"><button
+        class="btn btn-primary " type="button" id="prompt">Add Service</button></a>
+        <input type="submit" value="Add Service" class="btn btn-primary" id="confirmed" style="visibility: hidden;"/>
 </form>
 
 <div class="modal fade" id="CustomerAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -110,15 +179,64 @@
     </div>
 </div>
 
+<div class="modal fade" id="promptModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Review Service</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5 class="text-center text-danger">Service with Payment done can't be edited</h5>
+                <h6>Service <span id="ser-name" class="bld">{Service}</span> is  used by <span id="cust" class="bld">{customer}</span> at a Charge of Rs.<span id="charge" class="bld text-danger">{charge}</span> and has Profit of Rs. <span id="profit" class="bld text-danger">{profit}</span></h6>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal" id="cancel-btn">Go Back and Correct</button>
+                <button class="btn btn-primary" type="button"  id="clickbtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock body_block %}
 
 
 {% block javascript %}
+<script>
+    var dateinp = document.getElementById('id_service_date');
+    dateinp.style.display = "none";
+    let today = new Date().toLocaleDateString()
+    dateinp.value = today;
+</script>
+<script>
+    $('#promptModal #clickbtn').click(function(){
+        $('#confirmed').click();
+    });
+</script>
+
+<script>
+    $('#prompt').click(function(){
+        var service = document.getElementById("id_service_name").value;
+        document.getElementById('ser-name').innerHTML = service;
+
+        var customer = document.getElementById("customer").value;
+        document.getElementById('cust').innerHTML = customer;
+
+        var serviceamt = document.getElementById("id_service_charge").value;
+        document.getElementById('charge').innerHTML = serviceamt;
+        
+        var profit = document.getElementById("id_profit").value;
+        document.getElementById('profit').innerHTML = profit;
+       
+    });
+</script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
     $(function () {
-        var projects = [
-            {%for customer in customers %}
+        var projects = [{% for customer in customers %} 
             {
                 value: "{{customer.id}}",
                 label: "{{customer.name}}",
@@ -147,6 +265,20 @@
     });
 </script>
 <script>
+    document.getElementById("id_paid_amt").value = 0;
+    $('#checkbox-1').change(function(){
+        if ($('#checkbox-1').is(":checked"))
+        {
+            var charge = document.getElementById("id_service_charge").value;
+            document.getElementById("id_paid_amt").value = charge;
+        }
+        else
+        {
+            document.getElementById("id_paid_amt").value = 0;
+        }
+    })
+</script>
+<script>
     $('#id_bal_paid_date').datepicker({
         autoclose: true,
         todayHighlight: true
@@ -154,28 +286,29 @@
 </script>
 <script>
     $("#add-cust").click(function () {
-      var name = $('#CustomerAddModal #name').val().trim();
-      var phone = $('#CustomerAddModal #phone').val().trim();
-      var email = $('#CustomerAddModal #email').val().trim();
+        var name = $('#CustomerAddModal #name').val().trim();
+        var phone = $('#CustomerAddModal #phone').val().trim();
+        var email = $('#CustomerAddModal #email').val().trim();
 
 
-      $.ajax({
-        url: '/ajax/add_customer/',
-        data: {
-          'name': name,
-          'phone':phone,
-          'email':email
-        },
-        dataType: 'json',
-        success: function (data) {
-          if (data.successful) {
-            document.getElementsByClassName('modal-body')[0].innerHTML = "<h1>Added Successfully</h1>";
-            document.getElementById('customer').value = data.name;
-            document.getElementById('id_customer_id').value = data.id;
-            document.getElementById('cancel-btn').click();
-          }
-        }
-      });
+        $.ajax({
+            url: '/ajax/add_customer/',
+            data: {
+                'name': name,
+                'phone': phone,
+                'email': email
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.successful) {
+                    document.getElementsByClassName('modal-body')[0].innerHTML =
+                        "<h1>Added Successfully</h1>";
+                    document.getElementById('customer').value = data.name;
+                    document.getElementById('id_customer_id').value = data.id;
+                    document.getElementById('cancel-btn').click();
+                }
+            }
+        });
         event.preventDefault();
     });
 </script>

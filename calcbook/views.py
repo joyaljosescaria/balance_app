@@ -12,9 +12,11 @@ from .models import *
 from datetime import date
 from django.db.models import Sum
 from django.db.models import Q
-from django.views.generic import CreateView 
-from . forms import ServicesForm , CustomerAddForm
-
+from django.views.generic import CreateView , UpdateView , View
+from django.views.generic.list import ListView
+from . forms import ServicesForm , CustomerAddForm , DebitForm , DateForm
+from .render import Render
+from datetime import date
 
 # Create your views here.
 @login_required
@@ -102,7 +104,7 @@ class add_services(CreateView):
             service.save()
             
             isPaid = service.isPaid
-            service_id = service.id
+            service_profitless = service.service_charge - service.profit
             balance_amt = service.service_charge
             profit = service.profit
             # all_total = Total.objects.only('id')
@@ -113,13 +115,16 @@ class add_services(CreateView):
                 total_bal = totalobj.total_amt + profit
                 profit_bal = totalobj.profit_total + profit
                 totalobj.total_amt = total_bal
-                totalobj.profit_total = total_bal
+                totalobj.profit_total = profit_bal
                 totalobj.save()
             else:
                 services = Services.objects.last()
                 balobj = Balance.objects.create(service_id=services , balance_amt = balance_amt )
-                print(balobj.service_id)
                 balobj.save() 
+                totalobj = Total.objects.get(id=1)
+                total_loss = totalobj.loss_total + service_profitless
+                totalobj.loss_total = total_loss
+                totalobj.save()
 
             return HttpResponseRedirect(reverse_lazy('calcbook:welcome'))
         return render(request, 'add_services.html', {'form': form})
@@ -140,3 +145,117 @@ def add_customer(request):
         'name': name ,
     }
     return JsonResponse(data)
+
+class ServicesUpdateView(UpdateView):
+    model = Services
+    form_class = ServicesForm
+    template_name = "edit_services.html"
+    success_url = '/welcome/'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        name = Services.objects.filter(id= self.object.pk)
+        for nam in name:
+            name = nam.customer_id.name
+            isPaid = nam.isPaid
+            ids = nam.id
+        context['name'] = name
+        context['isPaid'] = isPaid
+        context['id'] = ids
+        return context
+
+def change_name(request):
+    name = request.GET.get('name', None)
+    ids = request.GET.get('id')
+    
+    obj = Customers.objects.get(id= ids)
+    print(obj.name)
+    obj.name = name 
+    print(obj.name)
+    obj.save()
+    
+    data = {
+        'successful': True ,
+    }
+    return JsonResponse(data) 
+
+def change_data(request):
+    ser_id = request.GET.get('ser_id')
+    profit = request.GET.get('profit')
+    sercharge = request.GET.get('sercharge')
+
+    profit = float(profit)
+    sercharge = float(sercharge)
+    
+    balObj = Balance.objects.get(service_id = ser_id)
+    balObj.delete()
+
+    totalobj = Total.objects.get(id=1)
+    tot_ls = sercharge - profit
+    totalobj.loss_total = totalobj.loss_total - tot_ls
+    totalobj.profit_total = totalobj.profit_total + profit
+    totalobj.total_amt = totalobj.total_amt + profit
+    totalobj.save()
+    
+    data = {
+        'successful': True ,
+    }
+    return JsonResponse(data) 
+
+
+class DebitAddViewCreateView(CreateView):
+    debit = Amount_debit.objects.order_by('-id')
+
+    def get(self, request, *args, **kwargs):
+        context = {'form': DebitForm() , 'debits': self.debit}
+        return render(request, 'add_debits.html', context)
+
+    def post(self, request, *args, **kwargs):
+        form = DebitForm(request.POST)
+        if form.is_valid():
+            debit = form.save()
+            debit.save()
+            
+            amt = debit.debit_amt
+            totalobj = Total.objects.get(id=1)
+            total_ls = totalobj.loss_total + amt
+            totalobj.loss_total = total_ls
+            totalobj.save()
+            
+            return HttpResponseRedirect(reverse_lazy('calcbook:welcome'))
+        return render(request, 'add_debits.html', {'form': form , 'debits': self.debit})
+
+class ServiceListView(ListView):
+    services = Services.objects.order_by('-id')
+
+    def get(self, request, *args, **kwargs):
+        context = {'form': DateForm() , 'services': self.services}
+        return render(request, 'service_list.html', context)
+
+    def post(self, request, *args, **kwargs):
+        form = DateForm(request.POST)
+        if form.is_valid():
+
+            date1 = request.POST.get('date1')
+            date2 = request.POST.get('date2')
+            
+            services = Services.objects.filter(service_date__range=(date1, date2)).order_by('-id')
+            return render(request, 'service_list.html', {'form': form , 'services': services}) 
+
+class BalanceList(ListView):
+    # model = Balance
+    queryset = Balance.objects.order_by('-id')
+    context_object_name = 'balances'
+    template_name = "balance_list.html"
+
+class TodayPdf(View):
+    today = date.today()
+
+    def get(self, request):
+        services = Services.objects.filter(service_date = self.today).order_by('-id')
+        params = {
+            'today': self.today,
+            'sales': services,
+            'request': request
+        }
+        return Render.render('daypdf.html', params) 

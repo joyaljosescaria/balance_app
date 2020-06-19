@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<title>Update Service</title>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<style>
+    #checkbox {
+        display: flex;
+        align-items: center;
+        margin: 1rem 0;
+        padding-top: 1rem;
+    }
+
+    .cust-input {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #customer {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .btn-add {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .loader {
+        height: calc(1.5em + .75rem + 2px);
+        /* padding: 1px; */
+        border: 1px solid #d1d3e2;
+        border-left: none;
+        border-top-right-radius: 0.35rem;
+        border-bottom-right-radius: 0.35rem;
+    }
+
+    input[type="checkbox"].ios8-switch {
+        position: absolute;
+        margin: 8px 0 0 16px;
+    }
+
+    input[type="checkbox"].ios8-switch+label {
+        position: relative;
+        padding: 5px 0 0 50px;
+        line-height: 1.0em;
+    }
+
+    input[type="checkbox"].ios8-switch+label:before {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0;
+        top: 0;
+        width: 40px;
+        /* x*5 */
+        height: 24px;
+        /* x*3 */
+        border-radius: 16px;
+        /* x*2 */
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        -webkit-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+
+    input[type="checkbox"].ios8-switch+label:after {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0px;
+        top: 0px;
+        width: 24px;
+        /* x*3 */
+        height: 24px;
+        /* x*3 */
+        border-radius: 16px;
+        /* x*2 */
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        -webkit-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+
+    input[type="checkbox"].ios8-switch+label:hover:after {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="checkbox"].ios8-switch:checked+label:after {
+        margin-left: 16px;
+    }
+
+    input[type="checkbox"].ios8-switch:checked+label:before {
+        background: #55D069;
+    }
+    .hidden
+    {
+        display: none;
+    }
+</style>
+{% endblock head %}
+
+
+
+{% block body_block %}
+<div class="hidden">{{id}}</div>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.errors}} 
+    <div class="row">
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Service Name:</label>
+                {{form.service_name}}
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Customer:</label>
+                <div class="cust-input">
+                    <input type="text" name="customer" id="customer" class="form-control shadow-none" value="{{name}}">
+                    <span class="input-group-btn">
+                        <img class="loader" src="https://www.festivalclaca.cat/imgfv/m/15-155680_camera-icon-white-small-white-camera-icon-transparent.png">
+                    </span>
+                </div>
+                {{form.customer_id}}
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Service Charge:</label>
+                {{form.service_charge}}
+            </div>
+        </div>
+
+        <div class="col-md-6 col-sm-12" id="checkbox">
+            <div class="form-group">
+                {{form.isPaid}}
+                <!-- <label for="servicename">Paid</label> -->
+                <label for='checkbox-1'>Paid</label>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Profit:</label>
+                {{form.profit}}
+            </div>
+        </div>
+        <!-- <div class="col-md-6 col-sm-12" id="checkbox">
+            <div class="form-check">
+                {{form.isPaid}}
+                <label class="form-check-label" for="isPaid">Paid</label>
+            </div>
+            
+        </div> -->
+        {{form.service_date}}
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group">
+                <label for="servicename">Paid Amount:</label>
+                {{form.paid_amt}}
+            </div>
+        </div>
+
+        {% if isPaid %}
+        <h1></h1>
+        {% else %}
+        <div class="col-12">
+            <div class="form-group">
+                <label for="servicename">Balance Pay Date:</label>
+                {{form.bal_paid_date}}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+    <a href="#" data-toggle="modal" data-target="#WarningModal" style="color: white;"><button
+        class="btn btn-primary " type="button" id="prompt">Update Service</button></a>
+    <input type="submit" value="Update Service" class="btn btn-primary" id="update_cust" style="visibility: hidden;"/>
+</form>
+
+<div class="modal fade" id="WarningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Warning</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5 class="text-center text-danger">
+                    The Payment Status can't be revoked . Are you sure of it?
+                </h5>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal" id="cancel-btn">Go Back</button>
+                <button class="btn btn-primary" type="button"  id="cnf" data-dismiss="modal">Sure</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body_block %}
+
+
+{% block javascript %}
+
+<script>
+    $('#id_service_charge').prop("readonly", true);
+    $('#id_profit').prop("readonly", true);
+    $('#id_service_name').prop("readonly", true);
+    $('#customer').prop("readonly", true);
+    if ($('#checkbox-1').is(":checked"))
+    {
+        $('#checkbox-1').prop("disabled", 'disabled');
+    }
+</script>
+<script>
+    // $('#id_bal_paid_date').datepicker({
+    //     autoclose: true,
+    //     todayHighlight: true
+    // });
+</script>
+
+<script>
+    $("#customer").on('keyup', function () {
+        $('.loader').attr('src','https://mir-s3-cdn-cf.behance.net/project_modules/disp/ab79a231234507.564a1d23814ef.gif')
+        var name = $('#customer').val()
+        var id = $('#id_customer_id').val()
+
+        $.ajax({
+            url: '/ajax/change_name/',
+            data: {
+                'name': name,
+                'id': id,
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.successful) { 
+                    $('.loader').attr('src','https://www.festivalclaca.cat/imgfv/m/15-155680_camera-icon-white-small-white-camera-icon-transparent.png') 
+                }
+            }
+        });
+        event.preventDefault();
+    });
+</script>
+
+<script>
+    var sercharge = $('#id_service_charge').val()
+    let today = new Date().toLocaleDateString()
+    $('#id_paid_amt').prop("readonly", true);
+    $('#id_bal_paid_date').prop("readonly", true);
+    $("#checkbox-1").change(function () {
+        if ($('#checkbox-1').is(":checked"))
+        {
+            document.getElementById("id_paid_amt").value = sercharge;
+            document.getElementById("id_bal_paid_date").value = today;
+        }
+        else
+        {
+            document.getElementById("id_paid_amt").value = 0 ;
+            document.getElementById("id_bal_paid_date").value = '';
+        }
+    });
+</script>
+
+<script>
+    var sercharge = $('#id_service_charge').val()
+    var profit = $('#id_profit').val()
+    var ser_id = $('.hidden').html()
+    $("#WarningModal #cnf").click(function () {
+        console.log("working")
+        if ($('#checkbox-1').is(":checked"))
+        {
+            console.log("ajax working")
+            $.ajax({
+                url: '/ajax/change_data/',
+                data: 
+                {
+                    'profit': profit,
+                    'ser_id': ser_id,
+                    'sercharge': sercharge,
+                },
+                dataType: 'json',
+                success: function (data) 
+                {
+                    if (data.successful) 
+                    { 
+                        alert("success")
+                    }
+                }
+            });
+            event.preventDefault(); 
+        }
+    });
+</script>
+<script>
+    $('#WarningModal #cnf').click(function(){
+        $('#update_cust').click();
+    });
+</script>
+{% endblock javascript %}

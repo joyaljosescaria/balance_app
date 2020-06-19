@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<title>Service List</title>
+<style>
+    #show
+    {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 14px;
+    }
+</style>
+{% endblock %}
+
+
+{% block body_block %}
+<div class="card shadow mb-4 mt-4">
+    <div class="card-body  border-top-primary">
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{form.errors}}
+            <div class="row">
+               <div class="col-md-4 col-sm-6">
+                  <div class="form-group">
+                     <label for="debituse">From:</label>
+                     {{form.date1}}
+                  </div>
+               </div>
+               <div class="col-md-4 col-sm-6">
+                  <div class="form-group">
+                     <label for="debitamt">To:</label>
+                     {{form.date2}}
+                  </div>
+               </div>
+               <div class="col-md-4 col-sm-12" id="show">
+                    <input type="submit" value="Show" class="btn btn-primary btn-block"  />
+               </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4 mt-4">
+    <div class="card-header py-3">
+        <div class="table-print" style="display: flex; justify-content: space-between; align-items: center;">
+            <h6 class="m-0 font-weight-bold text-primary">Daily Services</h6>
+            <button class="btn btn-primary">
+                <h6 class="m-0 font-weight-bold ">Print Report</h6>
+            </button>
+        </div>
+    </div>
+    <div class="card-body  border-bottom-primary">
+        <div class="table-responsive ">
+            <table class="table table-bordered" data-order='[[ 0, "des" ]]' id="dataTable" width="100%" cellspacing="0"
+                align="center">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Customer Name</th>
+                        <th>Service Charge</th>
+                        <th>isPaid</th>
+                        <th>Profit</th>
+                        <th>Paid Amount</th>
+                        <th>Service Date</th>
+                        <th>Balance Paid Date</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for service in services %}
+                    <tr>
+                        <td>{{service.service_name}}</td>
+                        <td>{{service.customer_id.name}}</td>
+                        <td>{{service.service_charge}}</td>
+                        {% if service.isPaid == True %}
+                        <td>Paid</td>
+                        {% else %}
+                        <td>Not Paid</td>
+                        {% endif %}
+                        <td>{{service.profit}}</td>
+                        <td>{{service.paid_amt}}</td>
+                        <td>{{service.service_date}}</td>
+                        {% if service.bal_paid_date == None %}
+                        <td>-</td>
+                        {% else %}
+                        <td>{{service.bal_paid_date}}</td>
+                        {% endif %}
+                        <td>  
+                            {% if service.isPaid %}
+                                -
+                            {% else %}
+                                <a href="/update_services/{{service.id}}/update/"><i class="fa fa-pencil-alt"></i> </a>    
+                            {% endif %}  
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock body_block %}
+
+
+{% block javascript %}
+
+<script>
+    $(document).ready(function () {
+        $('#dataTable').DataTable({
+            "ordering": false
+        });
+    });
+</script>
+
+<script>
+    $('#date-1').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true,
+        todayHighlight: true
+    });
+
+    $('#date-2').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true,
+        todayHighlight: true
+    });
+</script>
+
+    
+{% endblock javascript %}
+    
+
