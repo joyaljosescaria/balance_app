@@ -9,19 +9,19 @@ import json
 import requests
 from random import randint
 from .models import *
-from datetime import date
+import datetime
 from django.db.models import Sum
 from django.db.models import Q
 from django.views.generic import CreateView , UpdateView , View
 from django.views.generic.list import ListView
 from . forms import ServicesForm , CustomerAddForm , DebitForm , DateForm
 from .render import Render
-from datetime import date
+
 
 # Create your views here.
 @login_required
 def welcome(request): 
-    today = date.today()
+    today = datetime.date.today()
     username = request.user.first_name
     total_amt_today = Services.objects.filter(Q(service_date = today , isPaid = True) | Q(bal_paid_date=today)).aggregate(Sum('profit'))
     
@@ -204,10 +204,9 @@ def change_data(request):
 
 
 class DebitAddViewCreateView(CreateView):
-    debit = Amount_debit.objects.order_by('-id')
-
     def get(self, request, *args, **kwargs):
-        context = {'form': DebitForm() , 'debits': self.debit}
+        debit = Amount_debit.objects.order_by('-id')
+        context = {'form': DebitForm() , 'debits': debit}
         return render(request, 'add_debits.html', context)
 
     def post(self, request, *args, **kwargs):
@@ -221,9 +220,10 @@ class DebitAddViewCreateView(CreateView):
             total_ls = totalobj.loss_total + amt
             totalobj.loss_total = total_ls
             totalobj.save()
-            
-            return HttpResponseRedirect(reverse_lazy('calcbook:welcome'))
-        return render(request, 'add_debits.html', {'form': form , 'debits': self.debit})
+            debit = Amount_debit.objects.order_by('-id')
+            return render(request, 'add_debits.html', {'form': form , 'debits': debit})
+            # return HttpResponseRedirect(reverse_lazy('calcbook:welcome'))
+        
 
 class ServiceListView(ListView):
     services = Services.objects.order_by('-id')
@@ -249,13 +249,50 @@ class BalanceList(ListView):
     template_name = "balance_list.html"
 
 class TodayPdf(View):
-    today = date.today()
-
+    today = '2000-01-01'
     def get(self, request):
+        self.today = datetime.date.today()
+        total_amt_today = Services.objects.filter(Q(service_date = self.today , isPaid = True) | Q(bal_paid_date=self.today)).aggregate(Sum('profit'))
+    
+        all_total = Total.objects.values_list('total_amt', flat=True)
+        for all_t in all_total:
+            all_total = all_t
+        
+        total_loss = Total.objects.values_list('loss_total', flat=True)
+        for all_t in total_loss:
+            total_loss = all_t
+        
+        inHand = all_total - total_loss
+
+        total_bal = Balance.objects.aggregate(Sum('balance_amt'))
+    
+        total_bal = total_bal['balance_amt__sum']
         services = Services.objects.filter(service_date = self.today).order_by('-id')
         params = {
             'today': self.today,
-            'sales': services,
+            'total_amt_today' : total_amt_today,
+            'inHand' : inHand,
+            'total_bal':total_bal,
+            'all_total':all_total,
+            'services': services,
             'request': request
         }
         return Render.render('daypdf.html', params) 
+
+class BalancePdf(View):
+    today = '2000-01-01'
+    def get(self, request):
+        self.today = datetime.date.today()
+
+        balances = Balance.objects.order_by('-id')
+        
+        total_bal = Balance.objects.aggregate(Sum('balance_amt'))
+    
+        total_bal = total_bal['balance_amt__sum']
+        services = Services.objects.filter(service_date = self.today).order_by('-id')
+        params = {
+            'today': self.today,
+            'total_bal':total_bal,
+            'balances':balances,
+        }
+        return Render.render('balpdf.html', params) 

@@ -17,4 +17,5 @@ urlpatterns = [
     path('balance/', views.BalanceList.as_view(), name="balance"),
     path('services/', views.ServiceListView.as_view(), name="services"),
     path('daypdf/', views.TodayPdf.as_view(), name="daypdf"),
+    path('balpdf/', views.BalancePdf.as_view(), name="balpdf"),
 ]

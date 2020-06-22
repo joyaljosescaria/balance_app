@@ -285,6 +285,13 @@
     });
 </script>
 <script>
+    $('#CustomerAddModal #name').focus(function(){
+        var randomn = Math.floor(Math.random()*900000) + 100000;
+        names = 'user' + randomn;
+        document.getElementById("name").value = names;
+        $(this).select();
+    });
+
     $("#add-cust").click(function () {
         var name = $('#CustomerAddModal #name').val().trim();
         var phone = $('#CustomerAddModal #phone').val().trim();
